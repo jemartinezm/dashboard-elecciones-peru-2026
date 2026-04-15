@@ -25,7 +25,7 @@
  * Si queda en null → en Pages el botón "Actualizar" caerá silenciosamente
  * al JSON cacheado (sin romper nada, solo sin datos live).
  */
-const WORKER_URL = null;  // TODO: reemplazar tras `wrangler deploy`
+const WORKER_URL = 'https://onpe-proxy.jemartinezm.workers.dev';
 
 const IS_LOCAL = typeof location !== 'undefined' && (
   location.hostname === 'localhost' ||

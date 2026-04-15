@@ -1,0 +1,303 @@
+/* Dashboard Elecciones Perú 2026 — Tema NES 8-bit */
+
+/* === Variables ====================== */
+:root {
+  --bg:          #212529;
+  --bg-2:        #2e3338;
+  --text:        #e8e8e8;
+  --text-muted:  #aaaaaa;
+  --border:      #444;
+  --grid-color:  #333333;
+  --tick-color:  #cccccc;
+  --font-main:   'Press Start 2P', monospace;
+}
+
+body.light-mode {
+  --bg:          #f0f0f0;
+  --bg-2:        #ffffff;
+  --text:        #212529;
+  --text-muted:  #555555;
+  --border:      #cccccc;
+  --grid-color:  #cccccc;
+  --tick-color:  #333333;
+}
+
+/* === Reset / base =================== */
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-main);
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+/* NES.css overrides */
+.nes-container.is-dark {
+  background: var(--bg-2);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+/* === Layout (mobile-first) ========= */
+#app {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto;
+  gap: 1.25rem;
+  grid-template-areas:
+    "summary"
+    "filter"
+    "barchart"
+    "table"
+    "trend"
+    "projection"
+    "footer";
+}
+
+@media (min-width: 1024px) {
+  #app {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "summary    summary"
+      "filter     filter"
+      "barchart   table"
+      "trend      projection"
+      "footer     footer";
+  }
+}
+
+#summary-bar       { grid-area: summary; }
+#region-filter     { grid-area: filter; }
+#bar-chart-container { grid-area: barchart; }
+#candidate-table   { grid-area: table; }
+#trend-chart-container { grid-area: trend; }
+#projection-panel  { grid-area: projection; }
+#app-footer        { grid-area: footer; }
+
+/* === Header ========================= */
+#summary-bar .title {
+  font-family: var(--font-main);
+  font-size: clamp(0.7rem, 2vw, 1.1rem);
+  text-align: center;
+  margin-bottom: 0.75rem;
+  letter-spacing: 2px;
+}
+
+.summary-container { text-align: center; }
+
+.summary-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.summary-progress-row progress {
+  flex: 1;
+  height: 24px;
+}
+
+.summary-pct {
+  font-size: 1rem;
+  color: #4bff6b;
+  white-space: nowrap;
+  min-width: 5ch;
+  text-align: right;
+}
+
+.summary-actas,
+.summary-update {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin: 0.2rem 0;
+}
+
+/* === Filter ========================= */
+#region-filter {
+  text-align: center;
+}
+
+.filter-select-wrap {
+  display: inline-block;
+  min-width: 260px;
+}
+
+.warning-balloon {
+  margin-top: 0.5rem;
+  font-size: 0.65rem;
+}
+
+/* === Tables ======================== */
+.table-scroll-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.nes-table {
+  font-size: 0.65rem;
+  width: 100%;
+  min-width: 420px;
+}
+
+.nes-table th,
+.nes-table td {
+  white-space: nowrap;
+  padding: 4px 6px;
+}
+
+.col-partido { display: none; }
+@media (min-width: 640px) { .col-partido { display: table-cell; } }
+
+.row-candidate:hover { background: var(--bg); }
+.row-otros { opacity: 0.75; font-style: italic; }
+
+/* === Candidate badge (color swatch) = */
+.candidate-badge {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 2px solid #fff;
+  vertical-align: middle;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+
+/* === Charts ========================= */
+.chart-canvas-wrap {
+  position: relative;
+  height: 340px;
+}
+
+#bar-chart-container .chart-canvas-wrap {
+  height: 260px;
+}
+
+#bar-chart-container canvas,
+#trend-chart-container canvas {
+  width: 100% !important;
+  display: block;
+}
+
+/* === Projection Panel ============== */
+.projection-table {
+  font-size: 0.6rem;
+  min-width: 340px;
+}
+
+.projection-note {
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  margin-top: 0.75rem;
+}
+
+/* === Loading state ================= */
+#loader {
+  text-align: center;
+  padding: 2rem;
+}
+
+#loader p {
+  font-size: 0.7rem;
+  margin-top: 0.75rem;
+}
+
+#error-msg {
+  text-align: center;
+  padding: 2rem;
+}
+
+.is-loading-region {
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+/* === Fade-in animation ============= */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+/* === Controles flotantes ============ */
+#floating-controls {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-end;
+}
+
+#floating-controls .nes-btn {
+  font-size: 0.55rem;
+}
+
+/* === Footer ======================== */
+#app-footer {
+  text-align: center;
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  padding: 0.5rem 0 1.5rem;
+  border-top: 2px solid var(--border);
+}
+
+#app-footer a {
+  color: #4bff6b;
+  text-decoration: none;
+}
+
+/* === Dialogo candidato ============= */
+.nes-dialog {
+  background: var(--bg-2);
+  color: var(--text);
+  font-family: var(--font-main);
+  font-size: 0.65rem;
+  border: 4px solid var(--border);
+  padding: 1.5rem;
+  min-width: 260px;
+  max-width: 90vw;
+}
+
+.dialog-menu {
+  margin-top: 1rem;
+  padding: 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* === Light-mode: override NES.css is-dark hardcoded colors ===
+   NES.css uses explicit color values on is-dark, not CSS variables,
+   so we must override them here when body.light-mode is active.   */
+body.light-mode .nes-container.is-dark,
+body.light-mode .nes-container.is-dark .title {
+  background-color: var(--bg-2) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+body.light-mode .nes-table.is-dark,
+body.light-mode .nes-table.is-dark th,
+body.light-mode .nes-table.is-dark td {
+  background-color: var(--bg-2) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+body.light-mode .nes-dialog.is-dark {
+  background-color: var(--bg-2) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elecciones Perú 2026 — Dashboard NES</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title"       content="Elecciones Perú 2026 — Dashboard NES 8-bit" />
+  <meta property="og:description" content="Resultados en tiempo real, estilo NES. Candidatos, tendencias y proyecciones." />
+  <meta property="og:type"        content="website" />
+
+  <!-- NES.css -->
+  <link
+    href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css"
+    rel="stylesheet"
+  />
+  <!-- Press Start 2P -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+    rel="stylesheet"
+  />
+  <!-- Dashboard styles -->
+  <link rel="stylesheet" href="css/theme.css" />
+</head>
+<body>
+
+  <!-- ─── Loader (visible antes de que carguen los datos) ─── -->
+  <div id="loader">
+    <progress class="nes-progress is-pattern" style="width:80%;max-width:320px;margin:4rem auto;display:block"></progress>
+    <p>Cargando datos electorales…</p>
+  </div>
+
+  <!-- ─── Error (se muestra si loadAll() falla) ─── -->
+  <div id="error-msg" style="display:none; padding:2rem"></div>
+
+  <!-- ─── App principal (oculto hasta que carguen los datos) ─── -->
+  <main id="app" style="display:none" aria-label="Dashboard Elecciones Perú 2026">
+
+    <!-- M2: Summary Bar -->
+    <header id="summary-bar" aria-live="polite" aria-atomic="true"></header>
+
+    <!-- M6: Region Filter -->
+    <section id="region-filter" aria-label="Filtro por región"></section>
+
+    <!-- M4: Bar Chart -->
+    <section id="bar-chart-container" aria-label="Gráfico de barras por candidato">
+      <div class="nes-container is-dark with-title">
+        <p class="title">Resultados</p>
+        <div class="chart-canvas-wrap">
+          <canvas id="bar-chart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- M3: Candidate Table -->
+    <section id="candidate-table" aria-label="Tabla de resultados por candidato"></section>
+
+    <!-- M5: Trend Chart -->
+    <section id="trend-chart-container" aria-label="Evolución del conteo">
+      <div class="nes-container is-dark with-title">
+        <p class="title">Tendencia de votos</p>
+        <div class="chart-canvas-wrap">
+          <canvas id="trend-chart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- M7: Projection Panel -->
+    <section id="projection-panel" aria-label="Proyección vs encuestadoras"></section>
+
+    <!-- Footer -->
+    <footer id="app-footer">
+      <p>
+        Fuente: <a href="https://www.onpe.gob.pe" target="_blank" rel="noopener">ONPE</a> —
+        Datos al 14 abr 2026 (73.37% de actas) —
+        <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
+      </p>
+      <p style="margin-top:0.5rem">
+        Construido con
+        <a href="https://nostalgic-css.github.io/NES.css/" target="_blank" rel="noopener">NES.css</a> +
+        <a href="https://www.chartjs.org/" target="_blank" rel="noopener">Chart.js</a>
+      </p>
+    </footer>
+
+  </main>
+
+  <!-- ─── Controles flotantes ─── -->
+  <div id="floating-controls">
+    <button id="btn-refresh" class="nes-btn is-warning">↺ Actualizar</button>
+    <button id="theme-toggle" class="nes-btn is-default">MODO CLARO</button>
+  </div>
+
+  <!-- Chart.js (antes del módulo app.js) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+
+  <!-- App entry point -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

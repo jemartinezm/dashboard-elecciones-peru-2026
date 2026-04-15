@@ -1,0 +1,14 @@
+{
+  "name": "onpe-proxy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cloudflare Worker that proxies ONPE's live election data with CORS for the dashboard on GitHub Pages.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "wrangler": "^3.100.0"
+  }
+}

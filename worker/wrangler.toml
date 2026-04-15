@@ -1,0 +1,11 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "onpe-proxy"
+main = "src/index.js"
+compatibility_date = "2026-03-01"
+
+# The Worker has no secrets, no KV, no queues — it's a stateless proxy.
+# CPU time per request is well under 10ms (just a couple of fetches + JSON
+# transform), so the Cloudflare Free tier handles this without issues.
+
+[observability]
+enabled = true

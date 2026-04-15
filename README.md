@@ -89,15 +89,31 @@ Archivos de caché (actualizables manualmente):
 
 ## Deploy a GitHub Pages
 
-GitHub Pages es **estático** — `dev_server.py` no corre en producción. El refresh fallará silenciosamente y la página mostrará los datos del caché embebido. Para datos "en vivo" en producción se necesita un backend propio (Cloudflare Worker, Vercel Function, etc.).
+GitHub Pages es **estático** → `dev_server.py` no corre en producción. Para que el botón "Actualizar" traiga datos en vivo en Pages, hay un Cloudflare Worker propio en el directorio [`worker/`](worker/) que consulta ONPE directamente.
+
+### 1. Subir el frontend
 
 ```bash
-# Con gh CLI:
 gh auth login
 gh repo create dashboard-elecciones-peru-2026 --public --source=. --remote=origin --push
-gh api -X POST /repos/:owner/:repo/pages -f source.branch=main -f source.path=/
+gh api -X POST repos/:owner/:repo/pages -f source[branch]=main -f source[path]=/
 # URL: https://{usuario}.github.io/dashboard-elecciones-peru-2026/
 ```
+
+### 2. Desplegar el Worker para datos en vivo (opcional pero recomendado)
+
+Ver instrucciones detalladas en [`worker/README.md`](worker/README.md). En resumen:
+
+```bash
+cd worker
+npm install
+npx wrangler login       # OAuth en el browser (crea cuenta CF gratis si no la tienes)
+npx wrangler deploy      # da una URL tipo onpe-proxy.<subdominio>.workers.dev
+```
+
+Luego pega esa URL en [`js/onpeApi.js`](js/onpeApi.js) en la constante `WORKER_URL`, commit + push. GitHub Pages rebuildea en ~1 min y el dashboard queda con dot 🟢 **EN VIVO**.
+
+**Sin el Worker desplegado:** el dashboard sigue funcionando en Pages pero siempre muestra los datos del caché (dot 🟡 DATA CACHÉ). El botón "Actualizar" cae silenciosamente al JSON cacheado.
 
 ---
 

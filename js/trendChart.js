@@ -47,7 +47,7 @@ export function renderTrendChart(trackingCuts, canvasId) {
         },
         tooltip: {
           backgroundColor: '#212529',
-          borderColor:     '#ffffff',
+          borderColor:     '#4bff6b',
           borderWidth:     2,
           titleFont:  { family: "'Press Start 2P', monospace", size: 8 },
           bodyFont:   { family: "'Press Start 2P', monospace", size: 8 },
@@ -99,14 +99,17 @@ export function renderTrendChart(trackingCuts, canvasId) {
  */
 export function updateTrendChartTheme(isDark) {
   if (!_trendChart) return;
-  const gridColor = isDark ? '#333333' : '#cccccc';
-  const tickColor = isDark ? '#cccccc' : '#333333';
+  const gridColor  = isDark ? '#333333' : '#cccccc';
+  const tickColor  = isDark ? '#cccccc' : '#333333';
+  const tooltipBg  = isDark ? '#212529' : '#f8f8f8';
   _trendChart.options.scales.x.grid.color   = gridColor;
   _trendChart.options.scales.x.ticks.color  = tickColor;
   _trendChart.options.scales.x.title.color  = tickColor;
   _trendChart.options.scales.y.grid.color   = gridColor;
   _trendChart.options.scales.y.ticks.color  = tickColor;
   _trendChart.options.scales.y.title.color  = tickColor;
-  _trendChart.options.plugins.legend.labels.color = tickColor;
+  _trendChart.options.plugins.legend.labels.color     = tickColor;
+  _trendChart.options.plugins.tooltip.backgroundColor = tooltipBg;
+  _trendChart.options.plugins.tooltip.borderColor     = '#4bff6b';
   _trendChart.update();
 }

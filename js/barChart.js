@@ -1,9 +1,16 @@
 // M4 — Bar Chart (resultados principales)
 // Horizontal bars estilo 8-bit. Colores por key del candidato, no por posición.
+// Single-canvas module: _barChart tracks exactly one chart instance at a time.
 
 /* global Chart */
 
 let _barChart = null;  // referencia module-scoped para re-render seguro
+
+/** Calcula el máximo del eje X: al menos 22, o techo del mayor pct * 1.2 */
+function computeXMax(candidateArray) {
+  const maxPct = Math.max(...candidateArray.map(c => c.pct));
+  return Math.max(22, Math.ceil(maxPct * 1.2));
+}
 
 /** Convierte array de candidatos a datasets para Chart.js */
 function toChartData(candidateArray) {
@@ -21,7 +28,7 @@ function toChartData(candidateArray) {
 }
 
 /** Opciones Chart.js compartidas para estilo 8-bit */
-function chartOptions() {
+function chartOptions(xMax) {
   return {
     indexAxis:   'y',
     responsive:  true,
@@ -33,7 +40,7 @@ function chartOptions() {
       legend: { display: false },
       tooltip: {
         backgroundColor: '#212529',
-        borderColor:     '#ffffff',
+        borderColor:     '#4bff6b',
         borderWidth:     2,
         titleFont:  { family: "'Press Start 2P', monospace", size: 8 },
         bodyFont:   { family: "'Press Start 2P', monospace", size: 8 },
@@ -41,12 +48,12 @@ function chartOptions() {
           label: ctx => ` ${ctx.parsed.x.toFixed(3)}%`,
         },
       },
-      datalabels: undefined,  // no plugin externo — usamos afterDraw custom
+      // datalabels plugin no cargado — se usan afterDraw hooks custom si se necesita
     },
     scales: {
       x: {
         beginAtZero: true,
-        max:         22,
+        max:         xMax,
         ticks: {
           font:     { family: "'Press Start 2P', monospace", size: 7 },
           color:    '#cccccc',
@@ -71,7 +78,7 @@ function chartOptions() {
  * Si ya existe una instancia, la destruye primero.
  *
  * @param {Array} candidateArray  getCandidateNational() o getRegionData().candidates
- * @param {string} canvasId
+ * @param {string} canvasId       ID del canvas (módulo soporta un único canvas a la vez)
  */
 export function renderBarChart(candidateArray, canvasId) {
   const canvas = document.getElementById(canvasId);
@@ -85,7 +92,7 @@ export function renderBarChart(candidateArray, canvasId) {
   _barChart = new Chart(canvas, {
     type:    'bar',
     data:    toChartData(candidateArray),
-    options: chartOptions(),
+    options: chartOptions(computeXMax(candidateArray)),
   });
 }
 
@@ -98,8 +105,9 @@ export function renderBarChart(candidateArray, canvasId) {
 export function updateBarChart(candidateArray) {
   if (!_barChart) return;
   const d = toChartData(candidateArray);
-  _barChart.data.labels            = d.labels;
-  _barChart.data.datasets          = d.datasets;
+  _barChart.data.labels                  = d.labels;
+  _barChart.data.datasets                = d.datasets;
+  _barChart.options.scales.x.max        = computeXMax(candidateArray);
   _barChart.update();
 }
 
@@ -111,8 +119,11 @@ export function updateBarChartTheme(isDark) {
   if (!_barChart) return;
   const gridColor = isDark ? '#333333' : '#cccccc';
   const tickColor = isDark ? '#cccccc' : '#333333';
-  _barChart.options.scales.x.grid.color  = gridColor;
-  _barChart.options.scales.x.ticks.color = tickColor;
-  _barChart.options.scales.y.ticks.color = tickColor;
+  const tooltipBg = isDark ? '#212529' : '#f8f8f8';
+  _barChart.options.scales.x.grid.color              = gridColor;
+  _barChart.options.scales.x.ticks.color             = tickColor;
+  _barChart.options.scales.y.ticks.color             = tickColor;
+  _barChart.options.plugins.tooltip.backgroundColor  = tooltipBg;
+  _barChart.options.plugins.tooltip.borderColor      = '#4bff6b';
   _barChart.update();
 }

@@ -43,6 +43,9 @@
     <!-- M6: Region Filter -->
     <section id="region-filter" aria-label="Filtro por región"></section>
 
+    <!-- M9: Peru Map -->
+    <section id="peru-map-container" aria-label="Mapa electoral del Perú por departamento"></section>
+
     <!-- M4: Bar Chart -->
     <section id="bar-chart-container" aria-label="Gráfico de barras por candidato">
       <div class="nes-container is-dark with-title">
@@ -72,9 +75,12 @@
     <!-- Footer -->
     <footer id="app-footer">
       <p>
+        <i class="nes-icon heart is-small"></i>
         Fuente: <a href="https://www.onpe.gob.pe" target="_blank" rel="noopener">ONPE</a> —
         Datos al 14 abr 2026 (73.37% de actas) —
-        <a href="https://github.com" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com" target="_blank" rel="noopener">
+          <i class="nes-icon github is-small"></i> GitHub
+        </a>
       </p>
       <p style="margin-top:0.5rem">
         Construido con
@@ -90,6 +96,9 @@
     <button id="btn-refresh" class="nes-btn is-warning">↺ Actualizar</button>
     <button id="theme-toggle" class="nes-btn is-default">MODO CLARO</button>
   </div>
+
+  <!-- D3.js v7 (mapa SVG) -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 
   <!-- Chart.js (antes del módulo app.js) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>

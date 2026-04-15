@@ -31,7 +31,7 @@ html, body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-main);
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.7;
 }
 
@@ -44,16 +44,16 @@ html, body {
 
 /* === Layout (mobile-first) ========= */
 #app {
-  max-width: 1400px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 1rem;
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: auto;
-  gap: 1.25rem;
+  gap: 1rem;
   grid-template-areas:
     "summary"
     "filter"
+    "map"
     "barchart"
     "table"
     "trend"
@@ -61,33 +61,36 @@ html, body {
     "footer";
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   #app {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 3fr 2fr;
+    gap: 1.25rem;
     grid-template-areas:
       "summary    summary"
       "filter     filter"
+      "map        map"
       "barchart   table"
       "trend      projection"
       "footer     footer";
   }
 }
 
-#summary-bar       { grid-area: summary; }
-#region-filter     { grid-area: filter; }
-#bar-chart-container { grid-area: barchart; }
-#candidate-table   { grid-area: table; }
+#summary-bar          { grid-area: summary; }
+#region-filter        { grid-area: filter; }
+#peru-map-container   { grid-area: map; }
+#bar-chart-container  { grid-area: barchart; }
+#candidate-table      { grid-area: table; }
 #trend-chart-container { grid-area: trend; }
-#projection-panel  { grid-area: projection; }
-#app-footer        { grid-area: footer; }
+#projection-panel     { grid-area: projection; }
+#app-footer           { grid-area: footer; }
 
 /* === Header ========================= */
 #summary-bar .title {
   font-family: var(--font-main);
-  font-size: clamp(0.7rem, 2vw, 1.1rem);
+  font-size: clamp(0.65rem, 1.5vw, 1rem);
   text-align: center;
   margin-bottom: 0.75rem;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
 }
 
 .summary-container { text-align: center; }
@@ -99,39 +102,58 @@ html, body {
   margin-bottom: 0.5rem;
 }
 
-.summary-progress-row progress {
+.summary-progress {
   flex: 1;
-  height: 24px;
+  height: 28px !important;
 }
 
 .summary-pct {
-  font-size: 1rem;
+  font-size: 1.1rem;
   color: #4bff6b;
   white-space: nowrap;
-  min-width: 5ch;
+  min-width: 6ch;
   text-align: right;
 }
 
-.summary-actas,
-.summary-update {
-  font-size: 0.65rem;
+.summary-stats {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  font-size: 0.6rem;
   color: var(--text-muted);
-  margin: 0.2rem 0;
+  margin: 0.3rem 0;
+}
+
+.summary-vv { color: #4bff6b; }
+
+.summary-update {
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  margin: 0.25rem 0 0;
 }
 
 /* === Filter ========================= */
-#region-filter {
-  text-align: center;
+.filter-wrap { text-align: center; }
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
 }
 
-.filter-select-wrap {
-  display: inline-block;
-  min-width: 260px;
+.filter-select-wrap { min-width: 220px; }
+
+.region-badge {
+  font-size: 0.6rem;
+  min-width: 8ch;
 }
 
 .warning-balloon {
   margin-top: 0.5rem;
-  font-size: 0.65rem;
+  font-size: 0.6rem;
 }
 
 /* === Tables ======================== */
@@ -141,15 +163,17 @@ html, body {
 }
 
 .nes-table {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   width: 100%;
-  min-width: 420px;
+  min-width: 380px;
 }
+
+.nes-table th { font-size: 0.55rem; }
 
 .nes-table th,
 .nes-table td {
   white-space: nowrap;
-  padding: 4px 6px;
+  padding: 5px 7px;
 }
 
 .col-partido { display: none; }
@@ -157,6 +181,22 @@ html, body {
 
 .row-candidate:hover { background: var(--bg); }
 .row-otros { opacity: 0.75; font-style: italic; }
+
+.row-even { background: rgba(255,255,255,0.03); }
+.row-odd  { background: transparent; }
+
+.mini-bar-wrap {
+  height: 4px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 0;
+  margin-top: 3px;
+}
+
+.mini-bar {
+  height: 4px;
+  border-radius: 0;
+  transition: width 0.3s ease;
+}
 
 /* === Candidate badge (color swatch) = */
 .candidate-badge {
@@ -191,7 +231,8 @@ html, body {
   min-width: 340px;
 }
 
-.projection-note {
+.projection-note,
+.projection-note-balloon {
   font-size: 0.55rem;
   color: var(--text-muted);
   margin-top: 0.75rem;
@@ -276,6 +317,68 @@ html, body {
   padding: 0;
   display: flex;
   justify-content: flex-end;
+}
+
+/* === Scroll y separación =========== */
+html { scroll-behavior: smooth; }
+
+#app > section, #app > header, #app > footer {
+  animation: fadeIn 0.25s ease forwards;
+}
+
+/* === Peru Map (M9) ========================================= */
+.map-svg-area {
+  width: 100%;
+  overflow: hidden;
+}
+
+.map-svg-area svg {
+  width: 100%;
+  display: block;
+}
+
+/* Tooltip NES 8-bit flotante */
+.map-tooltip {
+  position: fixed;
+  pointer-events: none;
+  z-index: 200;
+  background: var(--bg-2);
+  border: 3px solid #4bff6b;
+  padding: 6px 10px;
+  font-family: var(--font-main);
+  font-size: 0.5rem;
+  color: var(--text);
+  line-height: 1.9;
+  white-space: nowrap;
+  box-shadow: -2px 0 0 #000, 2px 0 0 #000, 0 -2px 0 #000, 0 2px 0 #000;
+}
+
+.map-tooltip .tt-region { display: block; color: #4bff6b; font-size: 0.55rem; margin-bottom: 2px; }
+.map-tooltip .tt-leader { display: block; }
+.map-tooltip .tt-actas  { display: block; font-size: 0.45rem; color: var(--text-muted); }
+
+/* Leyenda */
+.map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.9rem;
+  justify-content: center;
+  padding: 0.5rem 0 0.25rem;
+  margin-top: 0.5rem;
+  border-top: 2px solid var(--border);
+  font-family: var(--font-main);
+  font-size: 0.45rem;
+  color: var(--text);
+}
+
+.legend-item { display: flex; align-items: center; gap: 5px; white-space: nowrap; }
+
+.legend-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #000;
+  flex-shrink: 0;
 }
 
 /* === Light-mode: override NES.css is-dark hardcoded colors ===

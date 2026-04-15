@@ -20,6 +20,7 @@
     href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
     rel="stylesheet"
   />
+
   <!-- Dashboard styles -->
   <link rel="stylesheet" href="css/theme.css" />
 </head>
@@ -37,8 +38,17 @@
   <!-- ─── App principal (oculto hasta que carguen los datos) ─── -->
   <main id="app" style="display:none" aria-label="Dashboard Elecciones Perú 2026">
 
+    <!-- M10: Hero (gran % nacional animado + live dot) -->
+    <section id="hero" aria-label="Avance nacional en vivo"></section>
+
     <!-- M2: Summary Bar -->
     <header id="summary-bar" aria-live="polite" aria-atomic="true"></header>
+
+    <!-- M11: KPI Cards (top 5 candidatos con delta y ghost value) -->
+    <section id="kpi-cards" aria-label="Top 5 candidatos"></section>
+
+    <!-- M12: Probability Bars (pasar a segunda vuelta) -->
+    <section id="prob-bars" aria-label="Probabilidad de pasar a segunda vuelta"></section>
 
     <!-- M6: Region Filter -->
     <section id="region-filter" aria-label="Filtro por región"></section>
@@ -66,6 +76,8 @@
         <div class="chart-canvas-wrap">
           <canvas id="trend-chart"></canvas>
         </div>
+        <!-- Mobile-friendly external tooltip panel (M5.1) -->
+        <div id="trend-tooltip-panel" aria-live="polite"></div>
       </div>
     </section>
 

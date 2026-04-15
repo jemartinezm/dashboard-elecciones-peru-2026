@@ -36,10 +36,6 @@ export function renderSummary(summary) {
   const pct = (summary.pct ?? 0).toFixed(2);
 
   el.innerHTML = `
-    <h1 class="title nes-text is-primary">
-      <i class="nes-icon trophy is-small"></i>
-      ELECCIONES PERÚ 2026
-    </h1>
     <div class="nes-container is-dark with-title summary-container">
       <p class="title">Avance de conteo</p>
       <div class="summary-progress-row">

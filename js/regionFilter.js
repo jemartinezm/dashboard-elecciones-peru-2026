@@ -17,9 +17,17 @@ function updateCoverageBadge(pct) {
  * Inicializa el filtro de regiones.
  *
  * @param {object} live  onpe_live.json parseado
- * @param {{ onTableUpdate, onChartUpdate, onSummaryUpdate }} updateCallbacks
+ * @param {{ onTableUpdate, onChartUpdate, onSummaryUpdate, onRegionHighlight, onKpiUpdate, onHeroUpdate }} updateCallbacks
  */
-export function initRegionFilter(live, { onTableUpdate, onChartUpdate, onSummaryUpdate, onRegionHighlight }) {
+export function initRegionFilter(live, {
+  onTableUpdate,
+  onChartUpdate,
+  onSummaryUpdate,
+  onRegionHighlight,
+  onKpiUpdate,
+  onHeroUpdate,
+  onProbUpdate,
+}) {
   const container = document.querySelector('#region-filter');
   if (!container) return;
 
@@ -89,6 +97,9 @@ export function initRegionFilter(live, { onTableUpdate, onChartUpdate, onSummary
     onTableUpdate(candidates);
     onChartUpdate(candidates);
     onSummaryUpdate(summaryData);
+    if (onKpiUpdate)  onKpiUpdate(candidates);
+    if (onHeroUpdate) onHeroUpdate(summaryData);
+    if (onProbUpdate) onProbUpdate(candidates, summaryData.pct ?? 0);
 
     // Quitar loading
     document.querySelector('#candidate-table')?.classList.remove('is-loading-region');

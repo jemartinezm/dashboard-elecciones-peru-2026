@@ -2,29 +2,85 @@
 // Funciones puras: todas reciben datos como argumento, no usan estado global.
 
 import { CANDIDATES, CANDIDATE_KEYS, OTROS, DATA_PATHS } from './config.js';
+import { fetchLiveSnapshot, fetchTrackingCuts } from './onpeApi.js';
 
 /**
- * Carga ambos JSON desde DATA_PATHS.
- * En error: retorna {error: true, message} + log a consola.
- * @returns {Promise<{tracking: object, live: object}>}
+ * Carga los JSON locales (fallback / carga inicial rápida).
+ * @returns {Promise<{tracking: object, live: object, meta: {source:'cache'}}>}
  */
-export async function loadAll() {
-  try {
-    const [trackingRes, liveRes] = await Promise.all([
-      fetch(DATA_PATHS.tracking),
-      fetch(DATA_PATHS.live),
-    ]);
-    if (!trackingRes.ok) throw new Error(`tracking.json: HTTP ${trackingRes.status}`);
-    if (!liveRes.ok)     throw new Error(`onpe_live.json: HTTP ${liveRes.status}`);
+async function loadFromCache() {
+  const [trackingRes, liveRes] = await Promise.all([
+    fetch(DATA_PATHS.tracking),
+    fetch(DATA_PATHS.live),
+  ]);
+  if (!trackingRes.ok) throw new Error(`tracking.json: HTTP ${trackingRes.status}`);
+  if (!liveRes.ok)     throw new Error(`onpe_live.json: HTTP ${liveRes.status}`);
 
-    const [tracking, live] = await Promise.all([
-      trackingRes.json(),
-      liveRes.json(),
-    ]);
-    return { tracking, live };
+  const [tracking, live] = await Promise.all([trackingRes.json(), liveRes.json()]);
+  return {
+    tracking,
+    live,
+    meta: { source: 'cache', freshness: 'data estática', fetchedAt: live.lastUpdate },
+  };
+}
+
+/**
+ * Carga desde el proxy /api/*. Si falla, cae al JSON local.
+ * @returns {Promise<{tracking: object, live: object, meta: {source:string, freshness:string, fetchedAt:string, warning?:string}}>}
+ */
+async function loadFromApi() {
+  // Fuente live OBLIGATORIA → si falla, propagamos para hacer fallback.
+  const { live, meta } = await fetchLiveSnapshot();
+
+  // Tracking: intenta API, cae al JSON local si el endpoint no existe.
+  let tracking = await fetchTrackingCuts();
+  if (!tracking) {
+    const res = await fetch(DATA_PATHS.tracking);
+    if (res.ok) tracking = await res.json();
+    else        tracking = { cuts: [] };
+  }
+
+  return { tracking, live, meta };
+}
+
+/**
+ * Carga principal.
+ *
+ * @param {{ live?: boolean }} opts  Si live=true, intenta API primero y cae al
+ *   JSON local si la API falla. Por defecto false → carga rápida desde cache.
+ *
+ * @returns {Promise<{tracking: object, live: object, meta: object}>}
+ *   meta.source ∈ {'api' | 'cache'}
+ *   meta.warning: mensaje presente si se cayó al fallback.
+ */
+export async function loadAll({ live = false } = {}) {
+  if (live) {
+    try {
+      return await loadFromApi();
+    } catch (err) {
+      console.warn('[dataLoader] API fallback → cache:', err.message);
+      try {
+        const cache = await loadFromCache();
+        return { ...cache, meta: { ...cache.meta, warning: `API no disponible (${err.message})` } };
+      } catch (err2) {
+        return {
+          tracking: { error: true, message: err2.message },
+          live:     { error: true, message: err2.message },
+          meta:     { source: 'error', warning: err2.message },
+        };
+      }
+    }
+  }
+
+  try {
+    return await loadFromCache();
   } catch (err) {
     console.error('[dataLoader] loadAll failed:', err);
-    return { tracking: { error: true, message: err.message }, live: { error: true, message: err.message } };
+    return {
+      tracking: { error: true, message: err.message },
+      live:     { error: true, message: err.message },
+      meta:     { source: 'error', warning: err.message },
+    };
   }
 }
 

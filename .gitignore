@@ -1,0 +1,41 @@
+# Local development tooling (Claude Code, planning docs, session notes)
+.claude/
+plan-*.md
+summary_*.md
+
+# Reference project (third-party code — not for republication)
+Elecciones_2026-main/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+package-lock.json
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Build / dist (if ever added)
+dist/
+build/
+.cache/
+
+# Env / secrets
+.env
+.env.*
+*.pem
+*.key

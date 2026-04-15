@@ -51,7 +51,10 @@ html, body {
   grid-template-columns: 1fr;
   gap: 1rem;
   grid-template-areas:
+    "hero"
     "summary"
+    "kpis"
+    "probs"
     "filter"
     "map"
     "barchart"
@@ -63,13 +66,16 @@ html, body {
 
 @media (min-width: 768px) {
   #app {
-    grid-template-columns: 3fr 2fr;
+    grid-template-columns: 1fr 1fr;
     gap: 1.25rem;
     grid-template-areas:
+      "hero       hero"
       "summary    summary"
+      "kpis       kpis"
+      "probs      probs"
       "filter     filter"
-      "map        map"
-      "barchart   table"
+      "map        barchart"
+      "map        table"
       "trend      projection"
       "footer     footer";
   }
@@ -174,6 +180,8 @@ html, body {
 .nes-table td {
   white-space: nowrap;
   padding: 5px 7px;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .col-partido { display: none; }
@@ -270,6 +278,18 @@ html, body {
   animation: fadeIn 0.3s ease forwards;
 }
 
+/* === Stagger reveal (M10) =========== */
+/* Cada sección aparece con un delay acumulado para crear narrativa visual */
+@keyframes staggerIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)    scale(1); }
+}
+
+.stagger-in {
+  opacity: 0;
+  animation: staggerIn 0.45s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+
 /* === Controles flotantes ============ */
 #floating-controls {
   position: fixed;
@@ -339,7 +359,7 @@ html { scroll-behavior: smooth; }
 
 /* Tooltip NES 8-bit flotante */
 .map-tooltip {
-  position: fixed;
+  position: absolute;
   pointer-events: none;
   z-index: 200;
   background: var(--bg-2);
@@ -379,6 +399,306 @@ html { scroll-behavior: smooth; }
   height: 12px;
   border: 2px solid #000;
   flex-shrink: 0;
+}
+
+/* === Hero Section (M10) ============ */
+/* Gran porcentaje nacional con gradiente y pulse live */
+#hero {
+  grid-area: hero;
+  text-align: center;
+  padding: 1.5rem 1rem 0.75rem;
+  position: relative;
+}
+
+.hero-label {
+  font-family: var(--font-main);
+  font-size: 0.55rem;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem;
+  text-transform: uppercase;
+}
+
+.hero-pct {
+  font-family: var(--font-main);
+  font-size: clamp(2.8rem, 10vw, 5.5rem);
+  font-weight: normal;
+  line-height: 1;
+  margin: 0;
+  background: linear-gradient(135deg, #4bff6b 0%, #1E90FF 60%, #FF6B35 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 24px rgba(75, 255, 107, 0.18);
+  letter-spacing: -2px;
+  display: inline-block;
+}
+
+body.light-mode .hero-pct {
+  background: linear-gradient(135deg, #0a7a2a 0%, #0052b3 60%, #b83a00 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+}
+
+.hero-sub {
+  font-family: var(--font-main);
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  margin: 0.5rem 0 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.live-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background: #ff3b3b;
+  border: 2px solid #000;
+  animation: livePulse 1.4s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+/* Estado del dot según la fuente de datos */
+.live-dot.is-live  { background: #4bff6b; }  /* verde neón = API en vivo */
+.live-dot.is-cache { background: #ffaa2b; animation: none; }  /* ámbar = cache estático */
+.live-dot.is-error { background: #ff3b3b; }  /* rojo = API offline */
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.45; transform: scale(1.15); }
+}
+
+/* === KPI Cards Row (M11) =========== */
+#kpi-cards {
+  grid-area: kpis;
+}
+
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.6rem;
+}
+
+@media (min-width: 560px) {
+  .kpi-row { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (min-width: 900px) {
+  .kpi-row { grid-template-columns: repeat(5, 1fr); gap: 0.75rem; }
+}
+
+.kpi-card {
+  position: relative;
+  padding: 0.75rem 0.6rem;
+  background: var(--bg-2);
+  border: 3px solid var(--border);
+  border-top-width: 6px;
+  text-align: center;
+  font-family: var(--font-main);
+  overflow: hidden;
+  transition: transform 0.2s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+}
+
+.kpi-initials {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  line-height: 24px;
+  font-size: 0.55rem;
+  border: 2px solid currentColor;
+  margin: 0 auto 0.35rem;
+  letter-spacing: 0;
+}
+
+.kpi-name {
+  font-size: 0.5rem;
+  color: var(--text);
+  margin: 0 0 0.35rem;
+  line-height: 1.3;
+  min-height: 2.2em;
+}
+
+.kpi-pct {
+  font-size: 1.25rem;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.1;
+  letter-spacing: -1px;
+}
+
+.kpi-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.45rem;
+  margin-top: 0.35rem;
+  padding: 2px 5px;
+  border: 2px solid transparent;
+  letter-spacing: 0.5px;
+}
+
+.kpi-delta.up   { color: #4bff6b; border-color: #4bff6b; }
+.kpi-delta.down { color: #ff6b6b; border-color: #ff6b6b; }
+.kpi-delta.flat { color: var(--text-muted); border-color: var(--text-muted); }
+
+.kpi-prev {
+  display: block;
+  font-size: 0.42rem;
+  color: var(--text-muted);
+  text-decoration: line-through;
+  margin-top: 0.25rem;
+  min-height: 1em;
+}
+
+/* Hot-mover glow (Tier 2 #5) */
+.kpi-card.is-hot {
+  animation: kpiPulse 0.7s ease-in-out 5;
+}
+
+@keyframes kpiPulse {
+  0%, 100% { box-shadow: 0 0 0 0 var(--glow, rgba(75, 255, 107, 0.9)); }
+  50%      { box-shadow: 0 0 18px 4px var(--glow, rgba(75, 255, 107, 0.9)); }
+}
+
+/* === Trend Chart External Panel (M5.1) = */
+/* Panel mobile-friendly siempre visible bajo el canvas de tendencia */
+#trend-tooltip-panel {
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.5rem;
+  border-top: 2px dashed var(--border);
+  font-family: var(--font-main);
+}
+
+.trend-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.5rem;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+
+.trend-panel-cut { color: #4bff6b; }
+.trend-panel-gap { color: var(--text); }
+
+.trend-panel-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.3rem 0.75rem;
+}
+
+.trend-panel-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.5rem;
+  color: var(--text);
+}
+
+.trend-panel-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 2px solid #000;
+  flex-shrink: 0;
+}
+
+.trend-panel-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trend-panel-val {
+  font-size: 0.55rem;
+  min-width: 5ch;
+  text-align: right;
+}
+
+/* === Probability Bars (M12) ======= */
+#prob-bars { grid-area: probs; }
+
+.prob-wrap { padding-bottom: 0.5rem; }
+
+.prob-note {
+  font-size: 0.5rem;
+  color: var(--text-muted);
+  margin: 0 0 0.75rem;
+}
+
+.prob-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.prob-item { display: block; }
+
+.prob-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+  font-size: 0.55rem;
+}
+
+.prob-initials {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  line-height: 18px;
+  text-align: center;
+  border: 2px solid currentColor;
+  font-size: 0.45rem;
+  flex-shrink: 0;
+}
+
+.prob-name { flex: 1; color: var(--text); }
+
+.prob-pct {
+  font-size: 0.6rem;
+  color: var(--text);
+  min-width: 5ch;
+  text-align: right;
+}
+
+.prob-track {
+  height: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid var(--border);
+  overflow: hidden;
+  position: relative;
+}
+
+.prob-fill {
+  height: 100%;
+  width: 0;
+  transition: width 1.1s cubic-bezier(.34, 1.56, .64, 1);
+  animation: probGrow 1.1s cubic-bezier(.34, 1.56, .64, 1) forwards;
+}
+
+@keyframes probGrow {
+  from { width: 0; }
+  /* destino viene del style="width:X%" inline */
 }
 
 /* === Light-mode: override NES.css is-dark hardcoded colors ===

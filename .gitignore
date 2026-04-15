@@ -20,6 +20,9 @@ npm-debug.log*
 yarn-debug.log*
 package-lock.json
 
+# Wrangler local state (Cloudflare Workers)
+.wrangler/
+
 # OS / editor cruft
 .DS_Store
 Thumbs.db

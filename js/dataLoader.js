@@ -100,17 +100,50 @@ export function getNationalSummary(live) {
 }
 
 /**
- * Resultados nacionales por candidato, calculados sumando votos de todas las regiones.
- * "Otros" = vv_total - Σ votos top5.
+ * Resultados nacionales por candidato.
+ *
+ * Si el payload `live` trae `candidatesNational` (viene del Worker v1 con
+ * datos LIVE de ONPE), los usa directamente — match exacto con los %s de
+ * la página oficial.
+ *
+ * Si no, cae al comportamiento original: suma votos de todas las regiones
+ * (compatible con el schema de `data/onpe_live.json` cacheado).
  *
  * @param {object} live
  * @param {{topN?: number, includeOtros?: boolean}} opts
  * @returns {Array<{key, name, party, pct, votes, color}>}  ordenado por pct desc
  */
 export function getCandidateNational(live, { topN = 5, includeOtros = true } = {}) {
-  const regions = live.regions ?? [];
+  // ── Fast path: Worker already hands us the national breakdown ──────────
+  if (Array.isArray(live.candidatesNational) && live.candidatesNational.length > 0) {
+    const top5 = live.candidatesNational
+      .map(c => ({
+        key:   c.key,
+        name:  CANDIDATES[c.key]?.name  ?? c.key,
+        party: CANDIDATES[c.key]?.party ?? '',
+        color: CANDIDATES[c.key]?.color ?? '#888',
+        votes: c.votes,
+        pct:   c.pct,
+      }))
+      .sort((a, b) => b.pct - a.pct)
+      .slice(0, topN);
 
-  // Sumar votos y votos válidos totales
+    if (!includeOtros) return top5;
+
+    const vvTotal   = Number(live.votosValidos ?? 0);
+    const top5Votes = top5.reduce((s, c) => s + (c.votes || 0), 0);
+    const top5Pct   = top5.reduce((s, c) => s + (c.pct   || 0), 0);
+    const otrosVotes = Math.max(0, vvTotal - top5Votes);
+    const otrosPct   = Math.max(0, 100 - top5Pct);
+
+    return [
+      ...top5,
+      { key: OTROS.key, name: OTROS.name, party: OTROS.party, color: OTROS.color, votes: otrosVotes, pct: otrosPct },
+    ];
+  }
+
+  // ── Fallback: aggregate from regions (legacy onpe_live.json schema) ────
+  const regions = live.regions ?? [];
   let vvTotal = 0;
   const votesMap = {};
   CANDIDATE_KEYS.forEach(k => { votesMap[k] = 0; });
@@ -122,7 +155,6 @@ export function getCandidateNational(live, { topN = 5, includeOtros = true } = {
     }
   }
 
-  // Construir array top5 (orden descendente por pct)
   const top5 = CANDIDATE_KEYS.map(k => ({
     key:   k,
     name:  CANDIDATES[k].name,
@@ -134,7 +166,6 @@ export function getCandidateNational(live, { topN = 5, includeOtros = true } = {
 
   if (!includeOtros) return top5;
 
-  // Calcular "Otros"
   const top5Votes = top5.reduce((s, c) => s + c.votes, 0);
   const otrosVotes = Math.max(0, vvTotal - top5Votes);
   const otrosPct   = vvTotal > 0 ? (otrosVotes / vvTotal) * 100 : 0;

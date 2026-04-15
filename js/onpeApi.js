@@ -117,6 +117,31 @@ function transformNational(nat, lastUpdateIso) {
   };
 }
 
+/**
+ * Upstream national.candidates `{fuji, rla, ...}` → array de candidatos en
+ * formato interno `[{key, pct, votes}, ...]` (usado por dataLoader para los
+ * KPI cards, la tabla y el bar chart).
+ *
+ * Preferimos esto sobre sumar por región porque:
+ * - El Worker v1 no trae regiones → las regiones vienen del cache estático.
+ * - Si sumamos por región obtenemos números VIEJOS (los del snapshot), no
+ *   los del conteo actual de ONPE.
+ * - El `national.candidates` del Worker SÍ es live y matchea exactamente
+ *   los %s que muestra la página de ONPE.
+ */
+function transformCandidatesNational(nat) {
+  const c = nat?.candidates ?? {};
+  const vv = Number(nat?.votosValidos ?? 0);
+  return Object.entries(KEY_MAP).map(([src, dst]) => {
+    const pct = Number(c[src] ?? 0);
+    return {
+      key:   dst,
+      pct,
+      votes: Math.round((pct / 100) * vv),
+    };
+  });
+}
+
 // ───────────────────────────────────────────────────────────────────────────
 // Public API
 // ───────────────────────────────────────────────────────────────────────────
@@ -171,6 +196,9 @@ export async function fetchLiveSnapshot() {
 
   const live = {
     ...transformNational(national, lastUpdate),
+    // candidatesNational = datos LIVE del Worker (no del cache regional).
+    // dataLoader.getCandidateNational() los prefiere sobre el fallback.
+    candidatesNational: transformCandidatesNational(national),
     regions,
   };
 

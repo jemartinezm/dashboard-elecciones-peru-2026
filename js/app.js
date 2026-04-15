@@ -64,7 +64,11 @@ function applyTheme(isDark) {
 async function renderAll(live, tracking, meta, { initial } = { initial: false }) {
   const summary = {
     ...getNationalSummary(live),
-    totalVV: (live.regions ?? []).reduce((s, r) => s + (r.vv ?? 0), 0),
+    // Prefer live Worker value (`live.votosValidos`) over sum-of-regions:
+    // when regions come from the cached JSON fallback, summing them yields
+    // stale vote totals that don't match ONPE's live count.
+    totalVV: Number(live.votosValidos)
+      || (live.regions ?? []).reduce((s, r) => s + (r.vv ?? 0), 0),
   };
   const nationalCandidates = getCandidateNational(live);
   const trackingCuts       = getTrackingCuts(tracking);

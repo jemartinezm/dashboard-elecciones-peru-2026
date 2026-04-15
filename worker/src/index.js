@@ -165,20 +165,35 @@ function mapParticipants(list) {
 }
 
 async function fetchOnpe(path) {
+  // ONPE sits behind CloudFront and uses the `Sec-Fetch-Site` + browser-like
+  // User-Agent as part of its cache key: only requests that look same-origin
+  // get routed to the JSON backend. Everything else gets the SPA HTML shell.
+  // Discovered empirically in April 2026 — these two headers are the minimum
+  // set that triggers the JSON response.
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), UPSTREAM_TIMEOUT_MS);
   try {
     const res = await fetch(ONPE_BASE + path, {
       signal: ctrl.signal,
       headers: {
-        'User-Agent': 'onpe-proxy-worker/1.0 (+https://github.com/jemartinezm/dashboard-elecciones-peru-2026)',
-        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36',
+        'Accept': 'application/json, text/plain, */*',
+        'Sec-Fetch-Site': 'same-origin',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Dest': 'empty',
+        'Referer': 'https://resultadoelectoral.onpe.gob.pe/',
       },
       // Use Cloudflare's edge cache for the upstream call too.
       cf: { cacheEverything: true, cacheTtl: CACHE_TTL_SECONDS },
     });
     if (!res.ok) throw new Error(`ONPE ${path}: HTTP ${res.status}`);
-    return await res.json();
+    const text = await res.text();
+    // Defensive: if CloudFront still served HTML, surface a helpful error
+    // instead of a cryptic JSON parse exception.
+    if (text.trimStart().startsWith('<')) {
+      throw new Error(`ONPE ${path}: unexpected HTML response (CloudFront served SPA shell)`);
+    }
+    return JSON.parse(text);
   } finally {
     clearTimeout(timer);
   }
